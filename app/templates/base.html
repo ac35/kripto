@@ -1,0 +1,20 @@
+<html>
+<head>
+    {% if title %}
+    <title>{{ title }} - Kripto</title>
+    {% else %}
+    <title>Kripto</title>
+    {% endif %}
+</head>
+<body>
+    <div>Kripto: <a href="/index">Home</a></div>
+    <hr>
+    {% block content %}{% endblock %}
+    {% block footer %}
+    <div>
+        <hr>
+        <p>Kripto &copy; 2018 - <a href="#">Alvin Chandra</a></p>
+    </div>
+    {% endblock %}
+</body>
+</html>
