@@ -41,5 +41,5 @@ nosetests.xml
 # Tambahan
 # instance/
 venv/
-# app.db
+app.db
 # microblog.log*
