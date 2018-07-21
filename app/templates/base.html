@@ -9,8 +9,16 @@
 <body>
     <div>
         Kripto:
-        <a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('index') }}">Home</a> |
+        {% if current_user.is_anonymous %}
         <a href="{{ url_for('login') }}">Login</a>
+        {% else %}
+        <a href="{{ url_for('encrypt') }}">Encrypt</a>
+        <a href="#">Inbox</a>
+        <a href="#">Outbox</a> |
+        <a href="{{ url_for('user', username=current_user.username) }}">Profile</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
     </div>
     <hr>
     {% with messages = get_flashed_messages() %}
@@ -26,7 +34,7 @@
     {% block footer %}
     <div>
         <hr>
-        <p>Kripto &copy; 2018 - <a href="#">Alvin Chandra</a></p>
+        <p>Kripto &copy; 2018 - <a href="{{ url_for('about') }}">Alvin Chandra</a></p>
     </div>
     {% endblock %}
 </body>

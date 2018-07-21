@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>About</h1>
+    <hr>
+    <table>
+        <tr>
+            <td colspan="2"><img src="{{ user.avatar(128) }}"></td>
+        </tr>
+        <tr>
+            <td>Nama</td>
+            <td>Alvin chandra</td>
+        </tr>
+        <tr>
+            <td>Nim</td>
+            <td>32120089</td>
+        </tr>
+        <tr>
+            <td>Email</td>
+            <td>alvinchandra783@gmail.com</td>
+        </tr>
+        <tr>
+            <td>Jurusan</td>
+            <td>Teknik Informatika</td>
+        </tr>
+        <tr>
+            <td>Fakultas</td>
+            <td>Teknologi Dan Desain</td>
+        </tr>
+    </table>
+{% endblock %}

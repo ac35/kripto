@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Halo {{ user.username }}, selamat datang di Kripto!</h1>
-    <hr>
+    <h1>Halo{% if current_user.is_authenticated %} {{ current_user.username }}{% endif %},
+        selamat datang di Kripto!</h1>
     <div><p>Konten index</p></div>
 {% endblock %}
