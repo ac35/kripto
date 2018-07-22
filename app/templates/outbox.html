@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Outbox</h1>
+<table border="1">
+    <tr>
+        <td>No</td>
+        <td>Filename</td>
+        <td>Type</td>
+        <td>Length</td>
+        <td>Sender</td>
+        <td>Date</td>
+        <td>Action</td>
+    </tr>
+    {% for message in messages %}
+    <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ message.cipherfile.filename }}</td>
+        <td>{{ message.cipherfile.file_type }}</td>
+        <td>{{ message.cipherfile.file_length }}</td>
+        <td>
+            <a href="{{ url_for('user', username=message.sender.username) }}">
+                {{ message.sender.username }}
+            </a>
+        </td>
+        <td>{{ message.timestamp.strftime('%m-%d-%Y %H:%M:%S') }}</td>
+        <td><a href="#">Delete</a></td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

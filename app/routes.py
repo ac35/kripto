@@ -193,6 +193,15 @@ def inbox():
     return render_template('inbox.html', title='Inbox', messages=messages)
 
 
+@app.route('/outbox')
+@login_required
+def outbox():
+    messages = current_user.messages_sent.order_by(Message.timestamp.desc()).all()  # nanti dibuat paginate?
+    if not messages:
+        flash('Your outbox is empty.')   # info
+    return render_template('outbox.html', title='Outbox', messages=messages)
+
+
 @app.route('/about')
 def about():
     user = User.query.filter_by(email='alvinchandra783@gmail.com').first()
@@ -246,9 +255,3 @@ def resend_confirmation():
     send_confirmation_link_email(current_user)
     flash('A new confirmation email has been sent.')
     return redirect(url_for('unconfirmed'))
-
-
-@app.route('/outbox')
-@login_required
-def outbox():
-    return 'OUTBOX'
