@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Decrypt</h1>
+<form action="" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <table border="1">
+        <tr>
+            <td>Filename</td>
+            <td colspan="2">{{ message.cipherfile.filename }}</td>
+        </tr>
+        <tr>
+            <td>Type</td>
+            <td colspan="2">{{ message.cipherfile.file_type }}</td>
+        </tr>
+        <tr>
+            <td>Length</td>
+            <td colspan="2">{{ message.cipherfile.file_length }}</td>
+        </tr>
+        <tr>
+            <td>Sender</td>
+            <td colspan="2">
+                <a href="{{ url_for('user', username=message.sender.username) }}">
+                    {{ message.sender.username }}
+                </a>
+            </td>
+        </tr>
+        <tr>
+            <td>Date</td>
+            <td colspan="2">{{ message.timestamp.strftime('%m-%d-%Y %H:%M:%S') }}</td>
+        </tr>
+        <tr>
+            <td>Comment</td>
+            <td colspan="2">{{ message.comment }}</td>
+        </tr>
+        <tr>
+            <td>{{ form.password.label }}</td>
+            <td colspan="2">
+                {{ form.password(size=32) }}
+                {% for error in form.password.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+                {% endfor %}
+            </td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>{{ form.submit() }}</td>
+            <td>
+                <button type="button">Cancel</button> <!--button cancel di dalam tag form atau di luar?-->
+            </td>
+        </tr>
+    </table>
+</form>
+{% endblock %}

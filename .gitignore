@@ -42,4 +42,5 @@ nosetests.xml
 # instance/
 venv/
 app.db
+app.db-journal
 # microblog.log*

@@ -2,7 +2,7 @@
 
 {% block content %}
     <h1>Encrypt</h1>
-    <form action="{{ url_for('encrypt') }}" enctype="multipart/form-data" method="post">
+    <form action="{{ url_for('encrypt') }}" enctype="multipart/form-data" method="post" novalidate>
         {{ form.hidden_tag() }}
         <p>
             {{ form.file.label }}
@@ -22,7 +22,7 @@
             {{ form.recipient.label }}
             {{ form.recipient() }}<br>
             {% for error in form.recipient.errors %}
-            <span style="color: red;">[{{ error }}]</span>
+            <span style="color: green;">[{{ error }}]</span>
             {% endfor %}
             <input id="send_to_myself" name="send_to_myself" type="checkbox" onchange="">
             <label for="send_to_myself">Send this file to me</label>
@@ -30,7 +30,7 @@
         <p>
             {{ form.comment.label }}
             {{ form.comment() }}<br>
-            {% for error in form.recipient.errors %}
+            {% for error in form.comment.errors %}
             <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
         </p>

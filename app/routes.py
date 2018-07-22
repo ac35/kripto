@@ -1,16 +1,17 @@
 from datetime import datetime
-from flask import render_template, flash, redirect, url_for, request
+from flask import render_template, flash, redirect, url_for, request, abort, send_file
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, ResetPasswordForm, EncryptForm
+from app.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, ResetPasswordForm, EncryptForm, DecryptForm
 from app.models import User, Cipherfile, Message
 from app.email import send_password_reset_email, send_confirmation_link_email
 from app.decorators import check_confirmed
 
 import os
 import hashlib
+from io import BytesIO
 from kripto_core.pbkdf2 import pbkdf2
 from kripto_core.rsa import rsa_cipher
 from kripto_core.salsa20 import Salsa20
@@ -99,7 +100,7 @@ def user(username):
 @login_required
 @check_confirmed
 def encrypt():
-    form = EncryptForm()
+    form = EncryptForm(sender=current_user)
     if form.validate_on_submit():
         file = form.file.data
         base_key = form.base_key.data
@@ -107,7 +108,7 @@ def encrypt():
         data = file.read()  # data dlm bytes (stream)
         comment = form.comment.data  # comment (pesan) untuk message
 
-        # digital signature digest
+        # proses digital signature digest
         digest = hashlib.sha256(data).digest()
         signed_digest = rsa_cipher.digital_signature(current_user.get_private_key(), digest)
 
@@ -146,6 +147,50 @@ def encrypt():
         # return '{} {} {}'.format(filename, recipient.username, len(data))
         return redirect(url_for('outbox'))
     return render_template('encrypt.html', title='Encrypt', form=form)
+
+
+@app.route('/decrypt/<message_id>', methods=['GET', 'POST'])
+@login_required
+def decrypt(message_id):
+    message = Message.query.filter(Message.id == message_id).first_or_404()
+    if message.recipient != current_user:
+        abort(403)  # mencoba decrypt message yang recipientnya bukan current_user
+    form = DecryptForm(recipient=current_user)
+    if form.validate_on_submit():
+        sender = message.sender
+        cipherfile = message.cipherfile
+
+        # dekripsi kunci s20 terenkripsi
+        dec_s20_key = rsa_cipher.decrypt(current_user.get_private_key(), cipherfile.encrypted_s20_key)
+
+        # dekripsi cipherfile
+        nonce = cipherfile.content[:8]  # ambil nonce
+        enc_data = cipherfile.content[8:]   # ambil encrypted data (bytes)
+        s20 = Salsa20(dec_s20_key, nonce)
+        dec_data = s20.decrypt(enc_data)    # data hasil dekripsi (decrypted data)
+
+        # dekripsi signed digest
+        dec_digest = rsa_cipher.decrypt_signature(sender.get_public_key(), cipherfile.signed_digest)
+
+        # bandingkan digest
+        digest_from_dec_data = hashlib.sha256(dec_data).digest()
+        if not digest_from_dec_data == dec_digest:
+            abort(500)  #  digest tidak cocok
+
+        # download file
+        flash('File {} has been sucessfully decrypted.'.format(cipherfile.filename))    # success
+        return send_file(BytesIO(dec_data), mimetype=cipherfile.file_type, as_attachment=True, attachment_filename=cipherfile.filename)
+
+    return render_template('decrypt.html', title='Decrypt', form=form, message=message)
+
+
+@app.route('/inbox')
+@login_required
+def inbox():
+    messages = current_user.messages_received.order_by(Message.timestamp.desc()).all()  # nanti dibuat paginate?
+    if not messages:
+        flash('Your inbox is empty.')   # info
+    return render_template('inbox.html', title='Inbox', messages=messages)
 
 
 @app.route('/about')
@@ -201,3 +246,9 @@ def resend_confirmation():
     send_confirmation_link_email(current_user)
     flash('A new confirmation email has been sent.')
     return redirect(url_for('unconfirmed'))
+
+
+@app.route('/outbox')
+@login_required
+def outbox():
+    return 'OUTBOX'

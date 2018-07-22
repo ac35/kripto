@@ -15,7 +15,7 @@
         <a href="{{ url_for('register') }}">Sign Up</a>
         {% else %}
         <a href="{{ url_for('encrypt') }}">Encrypt</a>
-        <a href="#">Inbox</a>
+        <a href="{{ url_for('inbox') }}">Inbox</a>
         <a href="#">Outbox</a> |
         <a href="{{ url_for('user', username=current_user.username) }}">Profile</a>
         <a href="{{ url_for('logout') }}">Logout</a>
