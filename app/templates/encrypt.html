@@ -2,5 +2,46 @@
 
 {% block content %}
     <h1>Encrypt</h1>
-    <div><p>Konten encrypt</p></div>
+    <form action="{{ url_for('encrypt') }}" enctype="multipart/form-data" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.file.label }}
+            {{ form.file() }}<br>
+            {% for error in form.file.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.base_key.label }}
+            {{ form.base_key(size=32) }}<br>
+            {% for error in form.base_key.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.recipient.label }}
+            {{ form.recipient() }}<br>
+            {% for error in form.recipient.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+            <input id="send_to_myself" name="send_to_myself" type="checkbox" onchange="">
+            <label for="send_to_myself">Send this file to me</label>
+        </p>
+        <p>
+            {{ form.comment.label }}
+            {{ form.comment() }}<br>
+            {% for error in form.recipient.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.password.label }}
+            {{ form.password(size=32) }}<br>
+            {% for error in form.password.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        {{ form.submit() }}
+        <button type="button">Cancel</button> <!--button cancel di dalam tag form atau di luar?-->
+    </form>
 {% endblock %}
