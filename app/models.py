@@ -5,6 +5,8 @@ import jwt
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import app, db, login
 from flask_login import UserMixin
+from kripto_core.rsa.make_rsa_keys import generate_key
+
 
 @login.user_loader
 def load_user(id):
@@ -71,11 +73,19 @@ class User(UserMixin, db.Model):
             return
         return User.query.get(id)
 
-    def make_rsa_keys(self):
+    def make_rsa_keys(self, keysize=1024):
         # membuat kunci publik dan privat rsa dengan tipe Text
-        # self.public_key = ''
-        # self.private_key = ''
-        pass
+        pubkey, privkey = generate_key(keysize)
+        self.public_key = '{},{},{}'.format(keysize, pubkey[0], pubkey[1])
+        self.private_key = '{},{},{}'.format(keysize, privkey[0], privkey[1])
+
+    def get_public_key(self):
+        keysize, n, e = self.public_key.split(',')
+        return int(keysize), int(n), int(e)
+
+    def get_private_key(self):
+        keysize, n, d = self.private_key.split(',')
+        return int(keysize), int(n), int(d)
 
 
 class Message(db.Model):
