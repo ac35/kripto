@@ -11,7 +11,8 @@
         Kripto:
         <a href="{{ url_for('index') }}">Home</a> |
         {% if current_user.is_anonymous %}
-        <a href="{{ url_for('login') }}">Login</a>
+        <a href="{{ url_for('login') }}">Sign In</a>
+        <a href="{{ url_for('register') }}">Sign Up</a>
         {% else %}
         <a href="{{ url_for('encrypt') }}">Encrypt</a>
         <a href="#">Inbox</a>

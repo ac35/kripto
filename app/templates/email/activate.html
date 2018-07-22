@@ -1,0 +1,11 @@
+<p>Dear {{ user.username }},</p>
+<p>Thanks for signing up.</p>
+<p>
+    Please follow this
+    <a href="{{ url_for('confirm_email', token=token, _external=True) }}">link</a>
+    to activate your account.
+</p>
+<p>Alternatively, you can paste the following link in your browser's address bar:</p>
+<p>{{ url_for('confirm_email', token=token, _external=True) }}</p>
+<p>Sincerely,</p>
+<p>Alvin Chandra</p>

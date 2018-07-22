@@ -1,0 +1,11 @@
+Dear {{ user.username }},
+
+Thanks for signing up.
+
+To activate your account:
+
+{{ url_for('confirm_email', token=token, _external=True) }}
+
+Sincerely,
+
+Alvin Chandra
