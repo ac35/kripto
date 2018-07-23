@@ -17,15 +17,14 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     form = RegistrationForm()
-    if request.method == 'POST':
-        if form.validate_on_submit():
-            user = User(username=form.username.data, email=form.email.data)
-            user.set_password(form.password.data)
-            db.session.add(user)
-            db.session.commit()
-            send_confirmation_link_email(user)
-            flash('A confirmation email has been sent via email.', 'info')
-            return redirect(url_for('auth.login'))   # cocok kah ke login?
+    if form.validate_on_submit():
+        user = User(username=form.username.data, email=form.email.data)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        send_confirmation_link_email(user)
+        flash('A confirmation email has been sent via email.', 'info')
+        return redirect(url_for('auth.login'))   # cocok kah ke login?
     return render_template('auth/register.html', title='Register', form=form)
 
 
