@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, TextAreaField, BooleanField
-from wtforms.validators import DataRequired, ValidationError, Email, EqualTo, Length
+from wtforms import PasswordField, SubmitField, SelectField, TextAreaField, BooleanField
+from wtforms.validators import DataRequired, ValidationError, Length
 from app.models import User
 
 
@@ -20,7 +20,7 @@ class EncryptForm(FlaskForm):
         # tangani recipient
         self.recipient.choices = [(sender.id, sender.username)]
         self.recipient.choices += [(u.id, u.username) for u in User.query.filter(User.id != sender.id).all()]
-        self.recipient.choices.insert(0, ('0', '---Select User---'))     # <--- tolong di fix! ValueError: too many values to unpack (expected 2)
+        self.recipient.choices.insert(0, ('0', '---Select User---'))
 
     def validate_password(self, password):
         if self.sender.check_password(password.data) is False:

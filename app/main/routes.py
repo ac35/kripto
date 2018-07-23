@@ -1,13 +1,12 @@
 from datetime import datetime
-from flask import render_template, flash, redirect, url_for, request, abort, send_file
-from flask_login import current_user, login_user, logout_user, login_required
-from werkzeug.urls import url_parse
+from flask import render_template, flash, redirect, url_for, abort, send_file
+from flask_login import current_user, login_required
 from werkzeug.utils import secure_filename
-from app import app, db
-from app.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, ResetPasswordForm, EncryptForm, DecryptForm
+from app import db
+from app.main.forms import EncryptForm, DecryptForm
 from app.models import User, Cipherfile, Message
-from app.auth.email import send_password_reset_email, send_confirmation_link_email
-from app.decorators import check_confirmed
+from app.auth.decorators import check_confirmed
+from app.main import bp
 
 import os
 import hashlib
@@ -17,21 +16,21 @@ from kripto_core.rsa import rsa_cipher
 from kripto_core.salsa20 import Salsa20
 
 
-@app.before_request
+@bp.before_request
 def before_request():
     if current_user.is_authenticated:
         current_user.last_seen = datetime.utcnow()
         db.session.commit()
 
 
-@app.route('/')
-@app.route('/index')
+@bp.route('/')
+@bp.route('/index')
 # @login_required
 def index():
     return render_template('index.html', title='Home')
 
 
-@app.route('/user/<username>')
+@bp.route('/user/<username>')
 @login_required
 @check_confirmed
 def user(username):
@@ -39,7 +38,7 @@ def user(username):
     return render_template('user.html', user=user)
 
 
-@app.route('/encrypt', methods=['GET', 'POST'])
+@bp.route('/encrypt', methods=['GET', 'POST'])
 @login_required
 @check_confirmed
 def encrypt():
@@ -47,7 +46,7 @@ def encrypt():
     if form.validate_on_submit():
         file = form.file.data
         base_key = form.base_key.data
-        recipient = User.query.get(form.recipient.data) # instance objek user
+        recipient = User.query.get(form.recipient.data)  # instance objek user
         data = file.read()  # data dlm bytes (stream)
         comment = form.comment.data  # comment (pesan) untuk message
 
@@ -70,7 +69,7 @@ def encrypt():
             filename=secure_filename(file.filename),
             file_type=file.content_type,
             file_length=len(data),
-            content=enc_data, # data yang telah dienkripsi dlm bytes <--
+            content=enc_data,  # data yang telah dienkripsi dlm bytes <--
             encrypted_s20_key=enc_s20_key,
             signed_digest=signed_digest
         )
@@ -88,11 +87,11 @@ def encrypt():
 
         flash('File {} has been sucessfully encrypted.'.format(cipherfile.filename), 'success')    # success
         # return '{} {} {}'.format(filename, recipient.username, len(data))
-        return redirect(url_for('outbox'))
+        return redirect(url_for('main.outbox'))
     return render_template('encrypt.html', title='Encrypt', form=form)
 
 
-@app.route('/decrypt/<message_id>', methods=['GET', 'POST'])
+@bp.route('/decrypt/<message_id>', methods=['GET', 'POST'])
 @login_required
 @check_confirmed
 def decrypt(message_id):
@@ -121,16 +120,17 @@ def decrypt(message_id):
         # bandingkan digest
         digest_from_dec_data = hashlib.sha256(dec_data).digest()
         if not digest_from_dec_data == dec_digest:
-            abort(500)  #  digest tidak cocok
+            abort(500)  # digest tidak cocok
 
         # download file
         flash('File {} has been sucessfully decrypted.'.format(cipherfile.filename), 'success')    # success
-        return send_file(BytesIO(dec_data), mimetype=cipherfile.file_type, as_attachment=True, attachment_filename=cipherfile.filename)
+        return send_file(BytesIO(dec_data), mimetype=cipherfile.file_type, as_attachment=True,
+                         attachment_filename=cipherfile.filename)
 
     return render_template('decrypt.html', title='Decrypt', form=form, message=message)
 
 
-@app.route('/inbox')
+@bp.route('/inbox')
 @login_required
 @check_confirmed
 def inbox():
@@ -140,7 +140,7 @@ def inbox():
     return render_template('inbox.html', title='Inbox', messages=messages)
 
 
-@app.route('/outbox')
+@bp.route('/outbox')
 @login_required
 @check_confirmed
 def outbox():
@@ -150,13 +150,13 @@ def outbox():
     return render_template('outbox.html', title='Outbox', messages=messages)
 
 
-@app.route('/about')
+@bp.route('/about')
 def about():
     user = User.query.filter_by(email='alvinchandra783@gmail.com').first()
     return render_template('about.html', title='About', user=user)
 
 
-@app.route('/delete_inbox/<message_id>')
+@bp.route('/delete_inbox/<message_id>')
 @login_required
 @check_confirmed
 def delete_inbox(message_id):
@@ -168,10 +168,10 @@ def delete_inbox(message_id):
         db.session.add(message)
         db.session.commit()
         flash('Message has been deleted.', 'success')
-    return redirect(url_for('inbox'))
+    return redirect(url_for('main.inbox'))
 
 
-@app.route('/delete_outbox/<message_id>')
+@bp.route('/delete_outbox/<message_id>')
 @login_required
 @check_confirmed
 def delete_outbox(message_id):
@@ -183,4 +183,4 @@ def delete_outbox(message_id):
         db.session.add(message)
         db.session.commit()
         flash('Message has been deleted.', 'success')
-    return redirect(url_for('outbox'))
+    return redirect(url_for('main.outbox'))
