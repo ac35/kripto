@@ -1,47 +1,28 @@
 {% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
 
-{% block content %}
+{% block app_content %}
     <h1>Encrypt</h1>
-    <form action="{{ url_for('encrypt') }}" enctype="multipart/form-data" method="post" novalidate>
-        {{ form.hidden_tag() }}
-        <p>
-            {{ form.file.label }}
-            {{ form.file() }}<br>
-            {% for error in form.file.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.base_key.label }}
-            {{ form.base_key(size=32) }}<br>
-            {% for error in form.base_key.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.recipient.label }}
-            {{ form.recipient() }}<br>
-            {% for error in form.recipient.errors %}
-            <span style="color: green;">[{{ error }}]</span>
-            {% endfor %}
-            <input id="send_to_myself" name="send_to_myself" type="checkbox" onchange="">
-            <label for="send_to_myself">Send this file to me</label>
-        </p>
-        <p>
-            {{ form.comment.label }}
-            {{ form.comment() }}<br>
-            {% for error in form.comment.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.password.label }}
-            {{ form.password(size=32) }}<br>
-            {% for error in form.password.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        {{ form.submit() }}
-        <button type="button">Cancel</button> <!--button cancel di dalam tag form atau di luar?-->
-    </form>
+    <hr>
+    <div class="row">
+        <div class="col-md-5">
+            {{ wtf.quick_form(form, form_type="horizontal", horizontal_columns=('lg', 5, 7), button_map={"submit": "primary"}) }}
+        </div>
+    </div>
+{% endblock %}
+
+{% block custom_script %}
+    <script>
+        var my_self = document.getElementById("my_self");
+        my_self.onchange = function() {toggleRecipient()};
+
+        function toggleRecipient() {
+            var r = document.getElementById("recipient");
+            if (my_self.checked) {
+                r.value = "{{ current_user.id }}";
+            } else {
+                r.value = "0";
+            }
+        }
+    </script>
 {% endblock %}

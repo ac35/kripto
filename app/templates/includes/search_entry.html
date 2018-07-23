@@ -1,0 +1,10 @@
+<form class="form-inline" method="get" role="form">
+    <div class="input-group">
+        <input class="form-control input-xs" name="q" placeholder="Search..." value="{{ request.args.get('q', '') }}">
+        <span class="input-group-btn">
+            <button class="btn btn-default" type="submit">
+                <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+            </button>
+        </span>
+    </div>
+</form>

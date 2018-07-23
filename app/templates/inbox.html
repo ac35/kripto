@@ -1,32 +1,45 @@
 {% extends "base.html" %}
 
-{% block content %}
-<h1>Inbox</h1>
-<table border="1">
-    <tr>
-        <td>No</td>
-        <td>Filename</td>
-        <td>Type</td>
-        <td>Length</td>
-        <td>Sender</td>
-        <td>Date</td>
-        <td colspan="2" style="text-align:center;">Action</td>
-    </tr>
-    {% for message in messages %}
-    <tr>
-        <td>{{ loop.index }}</td>
-        <td>{{ message.cipherfile.filename }}</td>
-        <td>{{ message.cipherfile.file_type }}</td>
-        <td>{{ message.cipherfile.file_length }}</td>
-        <td>
-            <a href="{{ url_for('user', username=message.sender.username) }}">
-                {{ message.sender.username }}
-            </a>
-        </td>
-        <td>{{ message.timestamp.strftime('%m-%d-%Y %H:%M:%S') }}</td>
-        <td><a href="#">Delete</a></td>
-        <td><a href="{{ url_for('decrypt', message_id=message.id) }}">Decrypt</a></td>
-    </tr>
-    {% endfor %}
-</table>
+{% block app_content %}
+    <h1>Inbox</h1>
+    <hr>
+    <table class="table table-hover">
+        <tr>
+            <td colspan="3"></td>
+            <td colspan="5" style="text-align:right;">{% include "includes/search_entry.html" %}</td>
+        </tr>
+        <tr>
+            <th>No</th>
+            <th>Filename</th>
+            <th>Type</th>
+            <th>Length</th>
+            <th>Sender</th>
+            <th>Date</th>
+            <th colspan="2" style="text-align:center;">Action</th>
+        </tr>
+        {% for message in messages %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ message.cipherfile.filename }}</td>
+            <td>{{ message.cipherfile.file_type }}</td>
+            <td>{{ message.cipherfile.file_length }}</td>
+            <td>
+                <a href="{{ url_for('user', username=message.sender.username) }}">
+                    {{ message.sender.username }}
+                </a>
+            </td>
+            <td>{{ message.timestamp.strftime('%m-%d-%Y %H:%M:%S') }}</td>
+            <td>
+                <a href="{{ url_for('delete_inbox', message_id=message.id) }}">
+                    <button type="button" class="btn btn-danger">Delete</button>
+                </a>
+            </td>
+            <td>
+                <a href="{{ url_for('decrypt', message_id=message.id) }}">
+                    <button type="button" class="btn btn-primary">Decrypt</button>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
 {% endblock %}

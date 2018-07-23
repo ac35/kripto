@@ -42,7 +42,7 @@ def register():
             db.session.add(user)
             db.session.commit()
             send_confirmation_link_email(user)
-            flash('A confirmation email has been sent via email.')
+            flash('A confirmation email has been sent via email.', 'info')
             return redirect(url_for('login'))   #  cocok kah ke login?
     return render_template('register.html', title='Register', form=form)
 
@@ -55,16 +55,18 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
-            flash('Invalid username or password')
+            flash('Invalid username or password', 'danger')
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
 
         if user.confirmed is False:
+            flash('Please confirm your account!', 'warning')
             return redirect(url_for('unconfirmed'))
 
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('index')
+            flash('Login success.', 'info')
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
 
@@ -79,12 +81,14 @@ def logout():
 def confirm_email(token):
     user = User.verify_confirm_email_token(token)
     if not user:
+        flash('Invalid token. Please try again!', 'warning')
         return redirect(url_for('index'))
     user.confirmed = True
     user.confirmed_timestamp = datetime.utcnow()
+    user.make_rsa_keys()
     db.session.add(user)
     db.session.commit()
-    flash('You have confirmed your account.')
+    flash('You have confirmed your account.', 'success')
     return redirect(url_for('login'))
 
 
@@ -143,7 +147,7 @@ def encrypt():
         db.session.add(message)
         db.session.commit()
 
-        flash('File {} has been sucessfully encrypted.'.format(cipherfile.filename))    # success
+        flash('File {} has been sucessfully encrypted.'.format(cipherfile.filename), 'success')    # success
         # return '{} {} {}'.format(filename, recipient.username, len(data))
         return redirect(url_for('outbox'))
     return render_template('encrypt.html', title='Encrypt', form=form)
@@ -151,6 +155,7 @@ def encrypt():
 
 @app.route('/decrypt/<message_id>', methods=['GET', 'POST'])
 @login_required
+@check_confirmed
 def decrypt(message_id):
     message = Message.query.filter(Message.id == message_id).first_or_404()
     if message.recipient != current_user:
@@ -178,7 +183,7 @@ def decrypt(message_id):
             abort(500)  #  digest tidak cocok
 
         # download file
-        flash('File {} has been sucessfully decrypted.'.format(cipherfile.filename))    # success
+        flash('File {} has been sucessfully decrypted.'.format(cipherfile.filename), 'success')    # success
         return send_file(BytesIO(dec_data), mimetype=cipherfile.file_type, as_attachment=True, attachment_filename=cipherfile.filename)
 
     return render_template('decrypt.html', title='Decrypt', form=form, message=message)
@@ -186,6 +191,7 @@ def decrypt(message_id):
 
 @app.route('/inbox')
 @login_required
+@check_confirmed
 def inbox():
     messages = current_user.messages_received.order_by(Message.timestamp.desc()).all()  # nanti dibuat paginate?
     if not messages:
@@ -195,6 +201,7 @@ def inbox():
 
 @app.route('/outbox')
 @login_required
+@check_confirmed
 def outbox():
     messages = current_user.messages_sent.order_by(Message.timestamp.desc()).all()  # nanti dibuat paginate?
     if not messages:
@@ -217,7 +224,7 @@ def reset_password_request():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
             send_password_reset_email(user)
-        flash('Check your email for the instructions to reset your password')
+        flash('Check your email for the instructions to reset your password', 'info')
         return redirect(url_for('login'))
     return render_template('reset_password_request.html',
                            title='Reset Password', form=form)
@@ -229,12 +236,13 @@ def reset_password(token):
         return redirect(url_for('index'))
     user = User.verify_reset_password_token(token)
     if not user:
+        flash('Invalid token. Please try again!', 'warning')
         return redirect(url_for('index'))
     form = ResetPasswordForm()
     if form.validate_on_submit():
         user.set_password(form.password.data)
         db.session.commit()
-        flash('Your password has been reset.')
+        flash('Your password has been reset.', 'info')
         return redirect(url_for('login'))
     return render_template('reset_password.html', form=form)
 
@@ -253,5 +261,35 @@ def resend_confirmation():
     if current_user.confirmed:
         return redirect(url_for('index'))
     send_confirmation_link_email(current_user)
-    flash('A new confirmation email has been sent.')
+    flash('A new confirmation email has been sent.', 'info')
     return redirect(url_for('unconfirmed'))
+
+
+@app.route('/delete_inbox/<message_id>')
+@login_required
+@check_confirmed
+def delete_inbox(message_id):
+    message = Message.query.filter(Message.id == message_id).first_or_404()
+    if message.recipient != current_user:
+        abort(403)  # mencoba delete message yang recipientnya bukan current_user
+    if message.status is Message.s['default']:
+        message.status = Message.s['has_been_deleted']
+        db.session.add(message)
+        db.session.commit()
+        flash('Message has been deleted.', 'success')
+    return redirect(url_for('inbox'))
+
+
+@app.route('/delete_outbox/<message_id>')
+@login_required
+@check_confirmed
+def delete_outbox(message_id):
+    message = Message.query.filter(Message.id == message_id).first_or_404()
+    if message.sender != current_user:
+        abort(403)  # mencoba delete message yang recipientnya bukan current_user
+    if message.status is Message.s['default']:
+        message.status = Message.s['has_been_deleted']
+        db.session.add(message)
+        db.session.commit()
+        flash('Message has been deleted.', 'success')
+    return redirect(url_for('inbox'))

@@ -1,54 +1,29 @@
 {% extends "base.html" %}
+{% import 'bootstrap/wtf.html' as wtf %}
 
-{% block content %}
-<h1>Decrypt</h1>
-<form action="" method="post" novalidate>
-    {{ form.hidden_tag() }}
-    <table border="1">
-        <tr>
-            <td>Filename</td>
-            <td colspan="2">{{ message.cipherfile.filename }}</td>
-        </tr>
-        <tr>
-            <td>Type</td>
-            <td colspan="2">{{ message.cipherfile.file_type }}</td>
-        </tr>
-        <tr>
-            <td>Length</td>
-            <td colspan="2">{{ message.cipherfile.file_length }}</td>
-        </tr>
-        <tr>
-            <td>Sender</td>
-            <td colspan="2">
-                <a href="{{ url_for('user', username=message.sender.username) }}">
-                    {{ message.sender.username }}
-                </a>
-            </td>
-        </tr>
-        <tr>
-            <td>Date</td>
-            <td colspan="2">{{ message.timestamp.strftime('%m-%d-%Y %H:%M:%S') }}</td>
-        </tr>
-        <tr>
-            <td>Comment</td>
-            <td colspan="2">{{ message.comment }}</td>
-        </tr>
-        <tr>
-            <td>{{ form.password.label }}</td>
-            <td colspan="2">
-                {{ form.password(size=32) }}
-                {% for error in form.password.errors %}
-                <span style="color: red;">[{{ error }}]</span>
-                {% endfor %}
-            </td>
-        </tr>
-        <tr>
-            <td></td>
-            <td>{{ form.submit() }}</td>
-            <td>
-                <button type="button">Cancel</button> <!--button cancel di dalam tag form atau di luar?-->
-            </td>
-        </tr>
-    </table>
-</form>
+{% macro static_control(label, text) %}
+    <div class="form-group">
+            <label class="control-label  col-lg-5">{{ label }}</label>
+            <div class=" col-lg-7">
+                <p class="form-control-static">{{ text }}</p>
+            </div>
+    </div>
+{% endmacro %}
+
+{% block app_content %}
+    <h1>Decrypt</h1>
+    <hr>
+    <div class="col-md-5">
+        <form class="form-horizontal" action="" method="post" novalidate>
+            {{ form.hidden_tag() }}
+            {{ static_control('Filename', message.cipherfile.filename ) }}
+            {{ static_control('Type', message.cipherfile.file_type ) }}
+            {{ static_control('Length', message.cipherfile.file_length ) }}
+            {# sender #}
+            {{ static_control('Date', message.timestamp.strftime('%m-%d-%Y %H:%M:%S') ) }}
+            {{ static_control('Comment', message.comment) }}
+            {{ wtf.form_field(form.password, form_type="horizontal",horizontal_columns=('lg', 5, 7)) }}
+            {{ wtf.form_field(form.submit, form_type="horizontal",horizontal_columns=('lg', 5, 7), button_map={"submit": "primary"}) }}
+        </form>
+    </div>
 {% endblock %}

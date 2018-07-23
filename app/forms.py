@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, TextAreaField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, TextAreaField, BooleanField
 from wtforms.validators import DataRequired, ValidationError, Email, EqualTo, Length
 from app.models import User
 
@@ -47,6 +47,7 @@ class EncryptForm(FlaskForm):
     file = FileField('File to encrypt', validators=[FileRequired()])
     base_key = PasswordField("Key", validators=[DataRequired()])
     recipient = SelectField("Recipient", coerce=int, validators=[DataRequired()])
+    my_self = BooleanField("myself")
     comment = TextAreaField("Comment", validators=[Length(min=0, max=140)])
     password = PasswordField("Your password", validators=[DataRequired()])
     submit = SubmitField('Encrypt')
