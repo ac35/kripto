@@ -160,6 +160,8 @@ def decrypt(message_id):
     message = Message.query.filter(Message.id == message_id).first_or_404()
     if message.recipient != current_user:
         abort(403)  # mencoba decrypt message yang recipientnya bukan current_user
+    if message.inbox_status == Message.status['has_been_deleted']:
+        abort(404)
     form = DecryptForm(recipient=current_user)
     if form.validate_on_submit():
         sender = message.sender
@@ -193,9 +195,9 @@ def decrypt(message_id):
 @login_required
 @check_confirmed
 def inbox():
-    messages = current_user.messages_received.order_by(Message.timestamp.desc()).all()  # nanti dibuat paginate?
+    messages = current_user.get_messages_from_inbox() or []   # nanti dibuat paginate?
     if not messages:
-        flash('Your inbox is empty.')   # info
+        flash('Your inbox is empty.', 'info')   # info
     return render_template('inbox.html', title='Inbox', messages=messages)
 
 
@@ -203,9 +205,9 @@ def inbox():
 @login_required
 @check_confirmed
 def outbox():
-    messages = current_user.messages_sent.order_by(Message.timestamp.desc()).all()  # nanti dibuat paginate?
+    messages = current_user.get_messages_from_outbox() or []    # nanti dibuat paginate?
     if not messages:
-        flash('Your outbox is empty.')   # info
+        flash('Your outbox is empty.', 'info')   # info
     return render_template('outbox.html', title='Outbox', messages=messages)
 
 
@@ -272,8 +274,8 @@ def delete_inbox(message_id):
     message = Message.query.filter(Message.id == message_id).first_or_404()
     if message.recipient != current_user:
         abort(403)  # mencoba delete message yang recipientnya bukan current_user
-    if message.status is Message.s['default']:
-        message.status = Message.s['has_been_deleted']
+    if message.inbox_status == Message.status['default']:
+        message.inbox_status = Message.status['has_been_deleted']
         db.session.add(message)
         db.session.commit()
         flash('Message has been deleted.', 'success')
@@ -287,9 +289,9 @@ def delete_outbox(message_id):
     message = Message.query.filter(Message.id == message_id).first_or_404()
     if message.sender != current_user:
         abort(403)  # mencoba delete message yang recipientnya bukan current_user
-    if message.status is Message.s['default']:
-        message.status = Message.s['has_been_deleted']
+    if message.outbox_status == Message.status['default']:
+        message.outbox_status = Message.status['has_been_deleted']
         db.session.add(message)
         db.session.commit()
         flash('Message has been deleted.', 'success')
-    return redirect(url_for('inbox'))
+    return redirect(url_for('outbox'))

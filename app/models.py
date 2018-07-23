@@ -87,15 +87,25 @@ class User(UserMixin, db.Model):
         keysize, n, d = self.private_key.split(',')
         return int(keysize), int(n), int(d)
 
+    def get_messages_from_inbox(self):
+        return self.messages_received.filter_by(inbox_status=Message.status['default']).order_by(
+            Message.timestamp.desc()).all()
+
+    def get_messages_from_outbox(self):
+        return self.messages_sent.filter_by(outbox_status=Message.status['default']).order_by(
+            Message.timestamp.desc()).all()
+
 
 class Message(db.Model):
-    s = {'default': 1, 'has_been_deleted': 0}
+    status = {'default': 1, 'has_been_deleted': 0}
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     cipherfile_id = db.Column(db.Integer, db.ForeignKey('cipherfile.id'), unique=True)  # saya coba set unique
     cipherfile = db.relationship('Cipherfile', backref='message', uselist=False)
-    status = db.Column(db.Integer, default=s['default'])
+    # status = db.Column(db.Integer, default=s['default'])
+    inbox_status = db.Column(db.Integer, default=status['default'])
+    outbox_status = db.Column(db.Integer, default=status['default'])
     comment = db.Column(db.String(140))
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
 
