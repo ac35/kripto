@@ -5,8 +5,7 @@
     <hr>
     <table class="table table-hover">
         <tr>
-            <td colspan="3"></td>
-            <td colspan="5" style="text-align:right;">{% include "includes/search_entry.html" %}</td>
+            <td colspan="8" style="text-align:right;">{% include "includes/search_entry.html" %}</td>
         </tr>
         <tr>
             <th>No</th>
@@ -28,7 +27,8 @@
                     {{ message.sender.username }}
                 </a>
             </td>
-            <td>{{ message.timestamp.strftime('%m-%d-%Y %H:%M:%S') }}</td>
+            {# <td>{{ message.timestamp.strftime('%m-%d-%Y %H:%M:%S') }}</td> #}
+            <td>{{ moment(message.timestamp).format('LLL') }}</td>
             <td>
                 <a href="{{ url_for('delete_inbox', message_id=message.id) }}">
                     <button type="button" class="btn btn-danger">Delete</button>

@@ -6,8 +6,13 @@
         <td><img src="{{ user.avatar(128) }}"></td>
         <td>
             <h1>User: {{ user.username }}</h1>
-            {% if user.last_seen %}<p>Last seen on: {{ user.last_seen }}</p>{% endif %}
-            {% if user.confirmed_timestamp %}<p>Date of joining: {{ user.confirmed_timestamp }}</p>{% endif %}
+            <hr>
+            {% if user.last_seen %}
+                <p>Last seen on: {{ moment(user.last_seen).calendar() }}</p>
+            {% endif %}
+            {% if user.confirmed_timestamp %}
+                <p>Date of joining: {{ moment(user.confirmed_timestamp).format('LLL') }}</p>
+            {% endif %}
         </td>
     </tr>
 </table>
