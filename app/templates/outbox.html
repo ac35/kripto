@@ -23,14 +23,14 @@
         <td>{{ message.cipherfile.file_type }}</td>
         <td>{{ message.cipherfile.file_length }}</td>
         <td>
-            <a href="{{ url_for('user', username=message.sender.username) }}">
+            <a href="{{ url_for('main.user', username=message.sender.username) }}">
                 {{ message.sender.username }}
             </a>
         </td>
         {# <td>{{ message.timestamp.strftime('%m-%d-%Y %H:%M:%S') }}</td> #}
         <td>{{ moment(message.timestamp).format('LLL') }}</td>
         <td>
-            <a href="{{ url_for('delete_outbox', message_id=message.id) }}">
+            <a href="{{ url_for('main.delete_outbox', message_id=message.id) }}">
                 <button type="button" class="btn btn-danger">Delete</button>
             </a>
         </td>

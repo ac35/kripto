@@ -26,7 +26,7 @@ def register():
             send_confirmation_link_email(user)
             flash('A confirmation email has been sent via email.', 'info')
             return redirect(url_for('auth.login'))   # cocok kah ke login?
-    return render_template('register.html', title='Register', form=form)
+    return render_template('auth/register.html', title='Register', form=form)
 
 
 @bp.route('/login', methods=['GET', 'POST'])
@@ -47,10 +47,10 @@ def login():
 
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
-            next_page = url_for('index')
+            next_page = url_for('main.index')
             flash('Login success.', 'info')
         return redirect(next_page)
-    return render_template('login.html', title='Sign In', form=form)
+    return render_template('auth/login.html', title='Sign In', form=form)
 
 
 @bp.route('/logout')
@@ -85,7 +85,7 @@ def reset_password_request():
             send_password_reset_email(user)
         flash('Check your email for the instructions to reset your password', 'info')
         return redirect(url_for('auth.login'))
-    return render_template('reset_password_request.html',
+    return render_template('auth/reset_password_request.html',
                            title='Reset Password', form=form)
 
 
@@ -103,7 +103,7 @@ def reset_password(token):
         db.session.commit()
         flash('Your password has been reset.', 'info')
         return redirect(url_for('auth.login'))
-    return render_template('reset_password.html', form=form)
+    return render_template('auth/reset_password.html', form=form)
 
 
 @bp.route('/unconfirmed')
@@ -111,7 +111,7 @@ def reset_password(token):
 def unconfirmed():
     if current_user.confirmed:
         return redirect(url_for('main.index'))
-    return render_template('unconfirmed.html')
+    return render_template('auth/unconfirmed.html')
 
 
 @bp.route('/resend_confirmation')

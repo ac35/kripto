@@ -12,7 +12,7 @@ from flask_moment import Moment
 db = SQLAlchemy()
 migrate = Migrate()
 login = LoginManager()
-login.login_view = 'login'
+login.login_view = 'auth.login'
 login.login_message_category = 'warning'
 mail = Mail()
 bootstrap = Bootstrap()
