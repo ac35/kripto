@@ -6,7 +6,7 @@ from werkzeug.utils import secure_filename
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, ResetPasswordRequestForm, ResetPasswordForm, EncryptForm, DecryptForm
 from app.models import User, Cipherfile, Message
-from app.email import send_password_reset_email, send_confirmation_link_email
+from app.auth.email import send_password_reset_email, send_confirmation_link_email
 from app.decorators import check_confirmed
 
 import os
@@ -15,6 +15,7 @@ from io import BytesIO
 from kripto_core.pbkdf2 import pbkdf2
 from kripto_core.rsa import rsa_cipher
 from kripto_core.salsa20 import Salsa20
+
 
 @app.before_request
 def before_request():
@@ -28,68 +29,6 @@ def before_request():
 # @login_required
 def index():
     return render_template('index.html', title='Home')
-
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    form = RegistrationForm()
-    if request.method == 'POST':
-        if form.validate_on_submit():
-            user = User(username=form.username.data, email=form.email.data)
-            user.set_password(form.password.data)
-            db.session.add(user)
-            db.session.commit()
-            send_confirmation_link_email(user)
-            flash('A confirmation email has been sent via email.', 'info')
-            return redirect(url_for('login'))   #  cocok kah ke login?
-    return render_template('register.html', title='Register', form=form)
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
-        if user is None or not user.check_password(form.password.data):
-            flash('Invalid username or password', 'danger')
-            return redirect(url_for('login'))
-        login_user(user, remember=form.remember_me.data)
-
-        if user.confirmed is False:
-            flash('Please confirm your account!', 'warning')
-            return redirect(url_for('unconfirmed'))
-
-        next_page = request.args.get('next')
-        if not next_page or url_parse(next_page).netloc != '':
-            next_page = url_for('index')
-            flash('Login success.', 'info')
-        return redirect(next_page)
-    return render_template('login.html', title='Sign In', form=form)
-
-
-@app.route('/logout')
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
-
-
-@app.route('/confirm_email/<token>', methods=['GET', 'POST'])
-def confirm_email(token):
-    user = User.verify_confirm_email_token(token)
-    if not user:
-        flash('Invalid token. Please try again!', 'warning')
-        return redirect(url_for('index'))
-    user.confirmed = True
-    user.confirmed_timestamp = datetime.utcnow()
-    user.make_rsa_keys()
-    db.session.add(user)
-    db.session.commit()
-    flash('You have confirmed your account.', 'success')
-    return redirect(url_for('login'))
 
 
 @app.route('/user/<username>')
@@ -215,56 +154,6 @@ def outbox():
 def about():
     user = User.query.filter_by(email='alvinchandra783@gmail.com').first()
     return render_template('about.html', title='About', user=user)
-
-
-@app.route('/reset_password_request', methods=['GET', 'POST'])
-def reset_password_request():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    form = ResetPasswordRequestForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        if user:
-            send_password_reset_email(user)
-        flash('Check your email for the instructions to reset your password', 'info')
-        return redirect(url_for('login'))
-    return render_template('reset_password_request.html',
-                           title='Reset Password', form=form)
-
-
-@app.route('/reset_password/<token>', methods=['GET', 'POST'])
-def reset_password(token):
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    user = User.verify_reset_password_token(token)
-    if not user:
-        flash('Invalid token. Please try again!', 'warning')
-        return redirect(url_for('index'))
-    form = ResetPasswordForm()
-    if form.validate_on_submit():
-        user.set_password(form.password.data)
-        db.session.commit()
-        flash('Your password has been reset.', 'info')
-        return redirect(url_for('login'))
-    return render_template('reset_password.html', form=form)
-
-
-@app.route('/unconfirmed')
-@login_required
-def unconfirmed():
-    if current_user.confirmed:
-        return redirect(url_for('index'))
-    return render_template('unconfirmed.html')
-
-
-@app.route('/resend_confirmation')
-@login_required
-def resend_confirmation():
-    if current_user.confirmed:
-        return redirect(url_for('index'))
-    send_confirmation_link_email(current_user)
-    flash('A new confirmation email has been sent.', 'info')
-    return redirect(url_for('unconfirmed'))
 
 
 @app.route('/delete_inbox/<message_id>')
