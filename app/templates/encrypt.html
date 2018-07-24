@@ -12,17 +12,15 @@
 {% endblock %}
 
 {% block custom_script %}
-    <script>
-        var my_self = document.getElementById("my_self");
-        my_self.onchange = function() {toggleRecipient()};
+    var my_self = document.getElementById("my_self");
+    my_self.onchange = function() {toggleRecipient()};
 
-        function toggleRecipient() {
-            var r = document.getElementById("recipient");
-            if (my_self.checked) {
-                r.value = "{{ current_user.id }}";
-            } else {
-                r.value = "0";
-            }
+    function toggleRecipient() {
+        var r = document.getElementById("recipient");
+        if (my_self.checked) {
+            r.value = "{{ current_user.id }}";
+        } else {
+            r.value = "0";
         }
-    </script>
+    }
 {% endblock %}

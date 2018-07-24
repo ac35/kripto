@@ -1,10 +1,10 @@
 from datetime import datetime
-from flask import render_template, flash, redirect, url_for, abort, send_file
+from flask import render_template, flash, redirect, url_for, abort, send_file, request, jsonify
 from flask_login import current_user, login_required
 from werkzeug.utils import secure_filename
 from app import db
 from app.main.forms import EncryptForm, DecryptForm
-from app.models import User, Cipherfile, Message
+from app.models import User, Cipherfile, Message, Notification
 from app.auth.decorators import check_confirmed
 from app.main import bp
 
@@ -83,6 +83,8 @@ def encrypt():
             comment=comment,
         )
         db.session.add(message)
+
+        recipient.add_notification('unread_inbox_message_count', recipient.new_inbox_messages())
         db.session.commit()
 
         flash('File {} has been sucessfully encrypted.'.format(cipherfile.filename), 'success')    # success
@@ -134,6 +136,9 @@ def decrypt(message_id):
 @login_required
 @check_confirmed
 def inbox():
+    current_user.last_inbox_read_time = datetime.utcnow()
+    current_user.add_notification('unread_inbox_message_count', 0)
+    db.session.commit()
     messages = current_user.get_messages_from_inbox() or []   # nanti dibuat paginate?
     if not messages:
         flash('Your inbox is empty.', 'info')   # info
@@ -184,3 +189,16 @@ def delete_outbox(message_id):
         db.session.commit()
         flash('Message has been deleted.', 'success')
     return redirect(url_for('main.outbox'))
+
+
+@bp.route('/notifications')
+@login_required
+def notifications():
+    since = request.args.get('since', 0.0, type=float)
+    notifications = current_user.notifications.filter(
+        Notification.timestamp > since).order_by(Notification.timestamp.asc())
+    return jsonify([{
+        'name': n.name,
+        'data': n.get_data(),
+        'timestamp': n.timestamp
+    } for n in notifications])

@@ -26,7 +26,19 @@
                 <ul class="nav navbar-nav">
                     <li><a href="{{ url_for('main.index') }}">Home</a></li>
                     <li><a href="{{ url_for('main.encrypt') }}">Encrypt</a></li>
-                    <li><a href="{{ url_for('main.inbox') }}">Inbox</a></li>
+                    <li>
+                        <a href="{{ url_for('main.inbox') }}">
+                            Inbox
+                            {% if current_user.is_authenticated %}
+                            {% set new_inbox_messages = current_user.new_inbox_messages() %}
+                            <span id="message_count" class="badge"
+                                style="visibility: {% if new_inbox_messages %}visible
+                                                    {% else %}hidden{% endif %};">
+                                {{ new_inbox_messages }}
+                            </span>
+                            {% endif %}
+                        </a>
+                    </li>
                     <li><a href="{{ url_for('main.outbox') }}">Outbox</a></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
@@ -70,5 +82,30 @@
 {% block scripts %}
     {{ super() }}
     {{ moment.include_moment() }}
-    {% block custom_script %}{% endblock %}
+    <script>
+        function set_message_count(n) {
+            $('#message_count').text(n);
+            $('#message_count').css('visibility', n ? 'visible' : 'hidden');
+        }
+
+        {% if current_user.is_authenticated %}
+        $(function() {
+            var since = 0;
+            setInterval(function() {
+                $.ajax('{{ url_for('main.notifications') }}?since=' + since).done(
+                    function(notifications) {
+                        for (var i = 0; i < notifications.length; i++) {
+                            if (notifications[i].name == 'unread_inbox_message_count')
+                                set_message_count(notifications[i].data);
+                            since = notifications[i].timestamp;
+                        }
+                    }
+                );
+            }, 10000);
+        });
+        {% endif %}
+
+        {% block custom_script %}{% endblock %}
+    </script>
+
 {% endblock %}

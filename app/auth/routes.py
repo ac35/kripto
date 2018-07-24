@@ -64,6 +64,11 @@ def confirm_email(token):
     if not user:
         flash('Invalid token. Please try again!', 'warning')
         return redirect(url_for('main.index'))
+    elif current_user.is_authenticated:
+        return redirect(url_for('main.index'))  # sudah logged in?
+    elif user.confirmed:
+        flash('User already confirmed!')    # sudah terkonfirmasi
+        return redirect(url_for('auth.login'))
     user.confirmed = True
     user.confirmed_timestamp = datetime.utcnow()
     user.make_rsa_keys()
