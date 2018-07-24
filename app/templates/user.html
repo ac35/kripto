@@ -1,19 +1,20 @@
 {% extends "base.html" %}
 
 {% block app_content %}
-<table>
-    <tr valign="top">
-        <td><img src="{{ user.avatar(128) }}"></td>
-        <td>
-            <h1>User: {{ user.username }}</h1>
-            <hr>
-            {% if user.last_seen %}
-                <p>Last seen on: {{ moment(user.last_seen).calendar() }}</p>
-            {% endif %}
-            {% if user.confirmed_timestamp %}
-                <p>Date of joining: {{ moment(user.confirmed_timestamp).format('LLL') }}</p>
-            {% endif %}
-        </td>
-    </tr>
-</table>
+    <br>
+    <table class="table" style="width: 50%;">
+        <tr>
+            <td style="width: 180px;"><img src="{{ user.avatar(174) }}"></td>
+            <td>
+                <h1>User: {{ user.username }}</h1>
+                <hr>
+                {% if user.last_seen %}
+                <p><strong>Last seen on:</strong> {{ moment(user.last_seen).calendar() }}</p>
+                {% endif %}
+                {% if user.confirmed_timestamp %}
+                <p><strong>Date of joining:</strong> {{ moment(user.confirmed_timestamp).format('LLL') }}</p>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
 {% endblock %}
