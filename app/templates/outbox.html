@@ -23,8 +23,8 @@
         <td>{{ message.cipherfile.file_type }}</td>
         <td>{{ message.cipherfile.file_length }}</td>
         <td>
-            <a href="{{ url_for('main.user', username=message.sender.username) }}">
-                {{ message.sender.username }}
+            <a href="{{ url_for('main.user', username=message.recipient.username) }}">
+                {{ message.recipient.username }}
             </a>
         </td>
         {# <td>{{ message.timestamp.strftime('%m-%d-%Y %H:%M:%S') }}</td> #}
