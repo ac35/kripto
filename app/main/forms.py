@@ -19,7 +19,8 @@ class EncryptForm(FlaskForm):
         self.sender = sender
         # tangani recipient
         self.recipient.choices = [(sender.id, sender.username)]
-        self.recipient.choices += [(u.id, u.username) for u in User.query.filter(User.id != sender.id).all()]
+        self.recipient.choices += [(u.id, u.username) for u in User.query.filter(
+            User.id != sender.id).filter_by(confirmed = True).all()]
         self.recipient.choices.insert(0, ('0', '---Select User---'))
 
     def validate_password(self, password):
