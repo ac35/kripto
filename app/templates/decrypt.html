@@ -1,11 +1,15 @@
 {% extends "base.html" %}
 {% import 'bootstrap/wtf.html' as wtf %}
 
-{% macro static_control(label, text) %}
+{% macro static_control(label, text, link, text_for_link) %}
     <div class="form-group">
             <label class="control-label  col-lg-5">{{ label }}</label>
             <div class=" col-lg-7">
+                {% if link %}
+                    <p class="form-control-static"><a href="{{ link }}">{{ text_for_link }}</a></p>
+                {% else %}
                 <p class="form-control-static">{{ text }}</p>
+                {% endif %}
             </div>
     </div>
 {% endmacro %}
@@ -16,12 +20,12 @@
     <div class="col-md-5">
         <form class="form-horizontal" action="" method="post" novalidate>
             {{ form.hidden_tag() }}
-            {{ static_control('Filename', message.cipherfile.filename ) }}
-            {{ static_control('Type', message.cipherfile.file_type ) }}
-            {{ static_control('Length', message.cipherfile.file_length ) }}
-            {# sender #}
-            {{ static_control('Date', message.timestamp.strftime('%m-%d-%Y %H:%M:%S') ) }}
-            {{ static_control('Comment', message.comment) }}
+            {{ static_control('Filename', text=message.cipherfile.filename ) }}
+            {{ static_control('Type', text=message.cipherfile.file_type ) }}
+            {{ static_control('Length', text=message.cipherfile.file_length ) }}
+            {{ static_control('Sender', link=url_for('main.user', username=message.sender.username), text_for_link=message.sender.username) }}
+            {{ static_control('Date', text=message.timestamp.strftime('%m-%d-%Y %H:%M:%S') ) }}
+            {{ static_control('Comment', text=message.comment) }}
             {{ wtf.form_field(form.password, form_type="horizontal",horizontal_columns=('lg', 5, 7)) }}
             {{ wtf.form_field(form.submit, form_type="horizontal",horizontal_columns=('lg', 5, 7), button_map={"submit": "primary"}) }}
         </form>

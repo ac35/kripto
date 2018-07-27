@@ -65,6 +65,7 @@ def confirm_email(token):
         flash('Invalid token. Please try again!', 'warning')
         return redirect(url_for('main.index'))
     elif current_user.is_authenticated:
+        flash('Invalid request', 'danger')
         return redirect(url_for('main.index'))  # sudah logged in?
     elif user.confirmed:
         flash('User already confirmed!')    # sudah terkonfirmasi
