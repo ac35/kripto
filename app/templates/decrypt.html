@@ -20,9 +20,11 @@
     <div class="col-md-5">
         <form class="form-horizontal" action="" method="post" novalidate>
             {{ form.hidden_tag() }}
-            {{ static_control('Filename', text=message.cipherfile.filename ) }}
-            {{ static_control('Type', text=message.cipherfile.file_type ) }}
-            {{ static_control('Length', text=message.cipherfile.file_length ) }}
+            {{ static_control('Filename', text=message.cipherfile.filename) }}
+            {{ static_control('Type', text=message.cipherfile.file_type) }}
+            {% with file_length = message.cipherfile.file_length|string + " bytes (" + message.cipherfile.file_length|humanize('naturalsize')|string + ")" %}
+                {{ static_control('Length', text=file_length) }}
+            {% endwith %}
             {{ static_control('Sender', link=url_for('main.user', username=message.sender.username), text_for_link=message.sender.username) }}
             {{ static_control('Date', text=message.timestamp.strftime('%m-%d-%Y %H:%M:%S') ) }}
             {{ static_control('Comment', text=message.comment) }}

@@ -21,7 +21,7 @@
             <td>{{ loop.index }}</td>
             <td>{{ message.cipherfile.filename }}</td>
             <td>{{ message.cipherfile.file_type }}</td>
-            <td>{{ message.cipherfile.file_length }}</td>
+            <td>{{ message.cipherfile.file_length }} bytes ({{ message.cipherfile.file_length|humanize('naturalsize') }})</td>
             <td>
                 <a href="{{ url_for('main.user', username=message.sender.username) }}">
                     {{ message.sender.username }}
